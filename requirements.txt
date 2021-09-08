@@ -1,0 +1,4 @@
+torch>=1.6.0
+transformers==4.1.1  
+prettytable  
+nltk  

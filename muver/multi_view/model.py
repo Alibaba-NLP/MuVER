@@ -126,7 +126,7 @@ class BiEncoder(nn.Module):
                 new_pool = []
                 views, seq_ids = ori_view, [[i] for i in range(len(ori_ent_id))]
             
-                for layer in range(merge_layers):
+                for layer in range(len(top_k)):
                     new_views, new_seq_ids = [], []
                     dis = torch.sum(F.mse_loss(views[:-1], views[1:], reduction='none'), -1)
                     merge_ids = torch.sort(dis, descending=True).indices[: int(views.size(0) * top_k[layer])].tolist()

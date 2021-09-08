@@ -55,8 +55,8 @@ def evaluate_bi_model(model, tokenizer, dataset, mode, encode_batch_size = 16, d
             candidate_encode = test_module.encode_candidates(
                 ent_ids = sample['token_ids'].cuda(),
                 view_expansion = view_expansion,
-                top_k = 0.4, 
-                merge_layers = 3,
+                top_k = top_k, 
+                merge_layers = merge_layers,
                 mode='test'
             ).squeeze(0).detach().to("cpu") # not support for encode_batch_size > 1
             entity_pool.append(candidate_encode)
@@ -70,19 +70,6 @@ def evaluate_bi_model(model, tokenizer, dataset, mode, encode_batch_size = 16, d
 
     if n_gpu > 1:
         torch.distributed.barrier()
-
-    '''
-        world_entity_pool, world_entity_titles = torch.load('entity_{}.pt'.format(local_rank), map_location='cpu')
-        if local_rank in [-1, 0]:
-            gather_pool = [None for _ in range(dist.get_world_size())]
-            gather_titles = [None for _ in range(dist.get_world_size())]
-            dist.all_gather_object(gather_pool, world_entity_pool)
-            dist.all_gather_object(gather_titles, world_entity_titles)
-            print(len(gather_pool), len(gather_titles))
-    else:
-        gather_pool = [world_entity_pool]
-        gather_titles = [world_entity_titles]
-    '''
     
     if local_rank not in [-1, 0]:
         return None, None
@@ -114,8 +101,7 @@ def evaluate_bi_model(model, tokenizer, dataset, mode, encode_batch_size = 16, d
         pool = world_entity_pool[key]
         pool = torch.cat(pool, 0).to("cuda:0")
         world_entity_pool[key] = pool 
-        print(world_entity_pool[key].shape)
-        print(len(world_entity_titles[key]))
+        #print(world_entity_pool[key].shape)
 
     world_entity_ids_range = {}
     for key, titles in world_entity_titles.items():
@@ -159,15 +145,6 @@ def evaluate_bi_model(model, tokenizer, dataset, mode, encode_batch_size = 16, d
                 predict_title = sorted(predict_title_dict, key=predict_title_dict.get)[::-1]
             else:
                 predict_title = []
-                '''
-                for ids in predict_ids:
-                    title = world_entity_titles[world][ids]
-                    if title not in predict_title:
-                        predict_title.append(title)
-                    if len(predict_title) == 64:
-                        break
-                assert len(set(predict_title)) == 64
-                '''
                 ids = 0
                 while len(predict_title) < 64:
                     title = world_entity_titles[world][predict_ids[ids]]
@@ -182,24 +159,7 @@ def evaluate_bi_model(model, tokenizer, dataset, mode, encode_batch_size = 16, d
             score_metrics[world][1] += 1
             score_metrics['total'][1] += 1
         
-            # save candidates
-            '''
-            predict_title_detail = []
-            for title in predict_title:
-                title_idx = dataset.entity_desc[world].entity_title_to_id[title]
-                title_token_ids = dataset.entity_desc[world][title_idx]['token_ids']
-
-                title_view_score = predict_score[world_entity_ids_range[world][title]]
-                title_rank = torch.sort(title_view_score, descending=True).indices.cpu()
-                predict_title_detail.append({
-                    'title': title, 
-                    'description_rank': title_rank.tolist()
-                })
-                
-                print(title, title_rank)
-            '''
             candidates.append([{'title': title} for title in predict_title])
-        #print("Candidate Time: ", time.time() - start_time)
     print(score_metrics)
     pretty_visualize(score_metrics, top_k)
 

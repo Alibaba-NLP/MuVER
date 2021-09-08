@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 '''
-@File    :   noisy_biencoder.py
-@Time    :   2021/04/01 01:27:05
+@File    :   train.py
+@Time    :   2021/09/08 10:36:15
 @Author  :   Xinyin Ma
-@Version :   0.1
+@Version :   1.0
 @Contact :   maxinyin@zju.edu.cn
 '''
 
@@ -118,27 +118,13 @@ def main(local_rank, args, train_dataset, valid_dataset, test_dataset, tokenizer
                     new_state_dict[param_name] = param_value
             bi_model.load_state_dict(new_state_dict)
 
-        
-
-    
-
-
         if args.n_gpu > 1:
             bi_model = DDP(bi_model, device_ids=[args.local_rank], find_unused_parameters=True)
         
         # Load Data
         if args.do_train:
             train_batch_size = grid_args.train_batch_size // grid_args.gradient_accumulation
-            train_dataset = ZeshelDataset(
-                mode='train',
-                desc_path=os.path.join(args.dataset_path, 'documents'),
-                dataset_path=os.path.join(args.dataset_path, 'blink_format'),
-                candidate_path='runtime_log',
-                tokenizer=tokenizer,
-                max_cand_len=args.max_cand_len,
-                max_sentence_num=args.max_sentence_num,
-                max_seq_len=args.max_seq_len,
-            )
+            
             if args.data_parallel:
                 sampler = SubWorldDistributedSampler(batch_size=grid_args.train_batch_size, subworld_idx=train_dataset.subworld_idx, num_replicas=args.n_gpu, rank=args.local_rank)
             else:
@@ -158,30 +144,6 @@ def main(local_rank, args, train_dataset, valid_dataset, test_dataset, tokenizer
             scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=warmup_steps, num_training_steps=total_steps)
             if args.local_rank in [0, -1]:
                 logger.writer.info("Optimization steps = {},  Warmup steps = {}".format(total_steps, warmup_steps))
-        
-        if args.do_eval:
-            valid_dataset = ZeshelDataset(
-                mode='valid',
-                desc_path=os.path.join(args.dataset_path, 'documents'),
-                dataset_path=os.path.join(args.dataset_path, 'blink_format'),
-                candidate_path='runtime_log',
-                tokenizer=tokenizer,
-                max_cand_len=args.max_cand_len,
-                max_seq_len=args.max_seq_len,
-                all_sentences = True
-            )
-        
-        if args.do_test:
-            test_dataset = ZeshelDataset(
-                mode=args.test_mode,
-                desc_path=os.path.join(args.dataset_path, 'documents'),
-                dataset_path=os.path.join(args.dataset_path, 'blink_format'),
-                candidate_path='runtime_log',
-                tokenizer=tokenizer,
-                max_cand_len=args.max_cand_len,
-                max_seq_len=args.max_seq_len,
-                all_sentences = True
-            )
 
         # Train
         if args.do_train:
@@ -236,10 +198,7 @@ def main(local_rank, args, train_dataset, valid_dataset, test_dataset, tokenizer
                                     mode='valid', 
                                     device=args.device, 
                                     local_rank=args.local_rank, 
-                                    n_gpu=args.n_gpu,
-                                    view_expansion = args.view_expansion,
-                                    merge_layers=args.merge_layers,
-                                    top_k=args.top_k)
+                                    n_gpu=args.n_gpu)
                                 
                                 if args.local_rank in [0, -1]: 
                                     logger.writer.info(score)
@@ -270,7 +229,9 @@ def main(local_rank, args, train_dataset, valid_dataset, test_dataset, tokenizer
                     n_gpu=args.n_gpu,
                     encode_batch_size=args.eval_batch_size,
                     view_expansion = args.view_expansion,
-                    is_accumulate_score = args.accumulate_score)
+                    is_accumulate_score = args.accumulate_score,
+                    merge_layers=args.merge_layers,
+                    top_k=args.top_k)
 
             if args.local_rank in [-1, 0]:
                 if logger is not None:
@@ -302,7 +263,7 @@ if __name__ == "__main__":
     # before multiprocessing, preprocess the data
     train_dataset, valid_dataset, test_dataset = None, None, None
     tokenizer = BertTokenizerFast.from_pretrained(args.pretrained_model)
-    '''
+    
     if args.do_train:
         train_dataset = ZeshelDataset(
             mode='train',
@@ -338,5 +299,5 @@ if __name__ == "__main__":
             max_seq_len=args.max_seq_len,
             all_sentences = True
         )
-    '''
+    
     mp.spawn(main, args=(args, train_dataset, valid_dataset, test_dataset, tokenizer,), nprocs=args.n_gpu, join=True)
