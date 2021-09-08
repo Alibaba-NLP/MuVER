@@ -17,7 +17,7 @@ We follow facebookresearch/BLINK to download and preprocess data. See [instructi
 Model for zeshel can be downloaded on https://drive.google.com/file/d/1BBTue5Vmr3MteGcse-ePqplWjccqm9_A/view?usp=sharing
 
 ### 3. Use the released model to reproduce our results
-Without View Merging:  
+* **Without View Merging**:  
 ```
 export PYTHONPATH='.'  
 CUDA_VISIBLE_DEVICES=YOUR_GPU_DEVICES python muver/multi_view/train.py 
@@ -41,7 +41,7 @@ Expected Result:
 |      yugioh      | 0.3432 | 0.4861 | 0.6040 | 0.7004 | 0.7596 | 0.8201 | 0.8512 | 0.8672 |  
 |      total       | 0.4496 | 0.5970 | 0.6936 | 0.7658 | 0.8187 | 0.8628 | 0.8854 | 0.8969 |  
 
-With View Merging:
+* **With View Merging**:
 ```
 export PYTHONPATH='.'  
 CUDA_VISIBLE_DEVICES=YOUR_GPU_DEVICES python muver/multi_view/train.py 
@@ -78,7 +78,15 @@ Optional Argument:
 ### 4. How to train your MuVER
 We provice the code for 
 ```
-CUDA_VISIBLE_DEVICES=0,1,2,3 python muver/multi_view/train.py --pretrained_model bert-base --epoch 30 --train_batch_size 128 --learning_rate 1e-5 --do_train --do_eval --data_parallel --name distributed_multi_view
+export PYTHONPATH='.'  
+CUDA_VISIBLE_DEVICES=YOUR_GPU_DEVICES python muver/multi_view/train.py 
+    --pretrained_model path_to_model/bert-base 
+    --epoch 30 
+    --train_batch_size 128 
+    --learning_rate 1e-5 
+    --do_train --do_eval 
+    --data_parallel 
+    --name distributed_multi_view
 ```
 **Important**: Since constrastive learning relies heavily on a large batch size, as reported in our paper, we use eight v100(16g) to train our model. The hyperparameters for our best model are in `logs/zeshel_hyper_param.txt`
 
