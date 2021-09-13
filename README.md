@@ -1,6 +1,6 @@
 # MuVER
-This repo contains the code and pre-trained model for out EMNLP 2021 paper:   
-**MuVER: Improving First-Stage Entity Retrieval with Multi-View Entity Representations**
+This repo contains the code and pre-trained model for our EMNLP 2021 paper:       
+**MuVER: Improving First-Stage Entity Retrieval with Multi-View Entity Representations**. Xinyin Ma, Yong Jiang, Nguyen Bach, Tao Wang, Zhongqiang Huang, Fei Huang, Weiming Lu
 
 ## Quick Start
 ### 1. Requirements
@@ -61,10 +61,10 @@ CUDA_VISIBLE_DEVICES=YOUR_GPU_DEVICES python muver/multi_view/train.py
 Expected result:   
 |      World       |  R@1   |  R@2   |  R@4   |  R@8   |  R@16  |  R@32  |  R@50  |  R@64  |
 |------------------|--------|--------|--------|--------|--------|--------|--------|--------|
-| forgotten_realms | 0.6175 | 0.7867 | 0.8733 | 0.915  | 0.9375 |  0.96  | 0.9675 | 0.9708 |
+| forgotten_realms | 0.6175 | 0.7867 | 0.8733 | 0.9150 | 0.9375 | 0.9600 | 0.9675 | 0.9708 |
 |       lego       | 0.5046 | 0.6889 | 0.7882 | 0.8449 | 0.8882 | 0.9183 | 0.9324 | 0.9374 |
-|    star_trek     | 0.481  | 0.6253 | 0.7121 | 0.7783 | 0.8271 | 0.8706 | 0.8935 | 0.903  |
-|      yugioh      | 0.3444 | 0.5027 | 0.6322 |  0.73  | 0.7902 | 0.8429 | 0.869  | 0.8826 |
+|    star_trek     | 0.4810 | 0.6253 | 0.7121 | 0.7783 | 0.8271 | 0.8706 | 0.8935 | 0.9030 |
+|      yugioh      | 0.3444 | 0.5027 | 0.6322 | 0.7300 | 0.7902 | 0.8429 | 0.8690 | 0.8826 |
 |      total       | 0.4541 | 0.6109 | 0.7136 | 0.7864 | 0.8352 | 0.8777 | 0.8988 | 0.9084 |
 
 Optional Argument:
