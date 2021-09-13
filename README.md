@@ -76,7 +76,7 @@ Optional Argument:
 * --test_mode: If you want to generate candidates for train/dev set, change the test_mode to train or dev, which will generate candidates outputs and save it under the directory where you save the test model.
 
 ### 4. How to train your MuVER
-We provice the code for 
+We provice the code to train your MuVER. Train the code with the following command:  
 ```
 export PYTHONPATH='.'  
 CUDA_VISIBLE_DEVICES=YOUR_GPU_DEVICES python muver/multi_view/train.py 
