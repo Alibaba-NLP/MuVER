@@ -12,7 +12,14 @@ For [huggingface/transformers](https://github.com/huggingface/transformers), we 
 
 ### 2. Download data and model
 * Data:   
-We follow facebookresearch/BLINK to download and preprocess data. See [instructions](https://github.com/facebookresearch/BLINK/tree/master/examples/zeshel) about how to download and convert to BLINK format. 
+We follow facebookresearch/BLINK to download and preprocess data. See [instructions](https://github.com/facebookresearch/BLINK/tree/master/examples/zeshel) about how to download and convert to BLINK format. You will get a folder with the following structure:
+```
+- zeshel
+  | - mentions
+  | - documents
+  | - blink_format 
+```
+
 * Model:  
 Model for zeshel can be downloaded on https://drive.google.com/file/d/1BBTue5Vmr3MteGcse-ePqplWjccqm9_A/view?usp=sharing
 
@@ -22,6 +29,7 @@ Model for zeshel can be downloaded on https://drive.google.com/file/d/1BBTue5Vmr
 export PYTHONPATH='.'  
 CUDA_VISIBLE_DEVICES=YOUR_GPU_DEVICES python muver/multi_view/train.py 
     --pretrained_model path_to_model/bert-base 
+    --dataset_path path_to_dataset/zeshel
     --bi_ckpt_path path_to_model/best_zeshel.bin 
     --max_cand_len 40 
     --max_seq_len 128
@@ -31,6 +39,8 @@ CUDA_VISIBLE_DEVICES=YOUR_GPU_DEVICES python muver/multi_view/train.py
     --eval_batch_size 16
     --accumulate_score
 ```
+
+
 Expected Result:  
 
 |      World       |  R@1   |  R@2   |  R@4   |  R@8   |  R@16  |  R@32  |  R@50  |  R@64  |  
@@ -46,6 +56,7 @@ Expected Result:
 export PYTHONPATH='.'  
 CUDA_VISIBLE_DEVICES=YOUR_GPU_DEVICES python muver/multi_view/train.py 
     --pretrained_model path_to_model/bert-base 
+    --dataset_path path_to_dataset/zeshel
     --bi_ckpt_path path_to_model/best_zeshel.bin 
     --max_cand_len 40 
     --max_seq_len 128 
@@ -81,6 +92,7 @@ We provice the code to train your MuVER. Train the code with the following comma
 export PYTHONPATH='.'  
 CUDA_VISIBLE_DEVICES=YOUR_GPU_DEVICES python muver/multi_view/train.py 
     --pretrained_model path_to_model/bert-base 
+    --dataset_path path_to_dataset/zeshel
     --epoch 30 
     --train_batch_size 128 
     --learning_rate 1e-5 

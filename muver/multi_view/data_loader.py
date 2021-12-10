@@ -238,7 +238,7 @@ def bi_collate_fn(batch):
 
 class ZeshelDataset(Dataset):
     def __init__(self, 
-        mode, desc_path, dataset_path, candidate_path, tokenizer,
+        mode, desc_path, dataset_path, tokenizer,
         max_cand_len = 30, max_seq_len = 128, max_sentence_num = 10, all_sentences = False,
     ):
         self.tokenizer = tokenizer
@@ -260,7 +260,7 @@ class ZeshelDataset(Dataset):
             for world in WORLDS[mode]
         }
 
-        self.load_training_samples(dataset_path, candidate_path, mode, max_seq_len)
+        self.load_training_samples(dataset_path, mode, max_seq_len)
         self.subworld_idx = self.get_subworld_idx()
 
     def get_subworld_idx(self):
@@ -272,7 +272,7 @@ class ZeshelDataset(Dataset):
         
         return worlds_sample_idx
 
-    def load_training_samples(self, dataset_path, candidate_path, mode, max_seq_len):
+    def load_training_samples(self, dataset_path, mode, max_seq_len):
         token_path = os.path.join(dataset_path, "{}_token.jsonl".format(mode))
         if os.path.exists(token_path):
             with open(token_path, 'r') as f:
@@ -280,17 +280,15 @@ class ZeshelDataset(Dataset):
                 print("Set/{}: Load {} samples".format(mode, len(self.samples)))
         else:
             data_path = os.path.join(dataset_path, "{}.jsonl".format(mode))
-            candidate_path = os.path.join(candidate_path, "{}_top_64_candidates.tsv".format(mode))
             num_lines = sum(1 for line in open(data_path, 'r'))
 
             self.samples = []
             print("Set/{}: preprocessing {} samples".format(mode, num_lines))
             
             with open(data_path, 'r') as sample_f:
-                with open(candidate_path, 'r') as candidate_f:
-                    for sample_line, candidate_line in tqdm(zip(sample_f, candidate_f), total = num_lines):
-                        sample = self.tokenize_context(json.loads(sample_line), candidate_line.strip().split('\t'), max_seq_len)
-                        self.samples.append(sample)
+                for sample_line in tqdm(sample_f, total = num_lines):
+                    sample = self.tokenize_context(json.loads(sample_line), max_seq_len)
+                    self.samples.append(sample)
 
             with open(token_path, 'w') as f:
                 for sample in self.samples:
@@ -303,36 +301,9 @@ class ZeshelDataset(Dataset):
         sample = self.samples[idx]
         context_ids = sample['ids']
         label, world = sample['label'], sample['world']
-        '''
-        candidate_tokens = []
-        if self.mode == 'train':
-            label_title = self.entity_desc[world].samples[label]['title']
-            for idx, candidate in enumerate([label_title] + candidates):
-                candidate_idx = self.entity_desc[world].entity_title_to_id[candidate]
-                if label == candidate_idx and idx != 0:
-                    continue
-                    
-                #input_ids, mention_pos, entity_pos = self.concat_context_entity_ids(context_ids, candidate_idx, world)
-                #candidate_tokens.append(input_ids)
-              
-            candidate_tokens = candidate_tokens[:self.top_k]
-            label_ids = 0
-        else:
-            label_ids = -1
-            for idx, candidate in enumerate(candidates):
-                candidate_idx = self.entity_desc[world].entity_title_to_id[candidate]
-                if label == candidate_idx:
-                    assert label_ids == -1
-                    label_ids = idx
-                    
-                #input_ids, mention_pos, entity_pos = self.concat_context_entity_ids(context_ids, candidate_idx, world)
-                #candidate_tokens.append(input_ids)
-        '''
-
+       
         if self.all_sentences:
             return {
-                #"candidate_ids": candidate_tokens,
-                #"candidate_label": label_ids,
                 "label_ids": [-1],
                 "context_ids": context_ids,
                 "world": world,
@@ -340,8 +311,6 @@ class ZeshelDataset(Dataset):
             }
         else:
             return {
-                #"candidate_ids": candidate_tokens,
-                #"candidate_label": label_ids,
                 "label_ids": self.entity_desc[world][label]['token_ids'],
                 "context_ids": context_ids,
                 "world": world,
@@ -363,7 +332,6 @@ class ZeshelDataset(Dataset):
     def tokenize_context(
         self,
         sample, 
-        candidate,
         max_seq_len
     ):
         '''
@@ -405,7 +373,6 @@ class ZeshelDataset(Dataset):
             "ids": input_ids,
             "label": sample['label_id'],
             "world": sample['world'],
-            "candidates": candidate
         }
     
 def cross_collate_fn(batch):
