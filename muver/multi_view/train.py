@@ -218,7 +218,7 @@ def main(local_rank, args, train_dataset, valid_dataset, test_dataset, tokenizer
             del optimizer
             
         if args.do_test:
-            if args.do_train:
+            if args.do_train and args.local_rank in [0, -1]:
                 bi_model.load_state_dict(torch.load(logger.checkpoint_path, map_location='cpu'))
             with torch.no_grad():
                 score, candidates = evaluate_bi_model(
